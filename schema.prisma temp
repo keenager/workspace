@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt 해시
+  createdAt DateTime @default(now())
+
+  // 내가 요청한 일정들
+  requestedEvents EventRequest[] @relation("RequestedBy")
+  // 나에게 할당된 일정들
+  assignedEvents  EventAssignee[]
+}
+
+// 일정 본체
+model CalendarEvent {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  priority    Priority    @default(NORMAL)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // 요청 정보 (누가 만든 요청인지)
+  request     EventRequest?
+  // 첨부파일 (나중에 대비)
+  attachments Attachment[]
+}
+
+// 요청 정보 (누가 만들었는지 + 전체 상태)
+model EventRequest {
+  id          String       @id @default(cuid())
+  eventId     String       @unique
+  event       CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  requestedById String
+  requestedBy   User       @relation("RequestedBy", fields: [requestedById], references: [id])
+  createdAt   DateTime     @default(now())
+
+  // 담당자별 수락/거절 상태
+  assignees   EventAssignee[]
+}
+
+// 담당자별 개별 상태 (핵심)
+model EventAssignee {
+  id        String      @id @default(cuid())
+  requestId String
+  request   EventRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  status    EventStatus @default(PENDING)
+  respondedAt DateTime?  // 수락/거절한 시각
+  comment   String?      // 거절 사유 등
+
+  @@unique([requestId, userId]) // 같은 요청에 같은 사람 중복 방지
+}
+
+// 첨부파일 (나중에 대비해서 구조만)
+model Attachment {
+  id      String        @id @default(cuid())
+  eventId String
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name    String
+  url     String
+}
+
+enum EventStatus {
+  PENDING    // 대기 중
+  CONFIRMED  // 수락
+  REJECTED   // 거절
+  DONE       // 완료
+}
+
+enum Priority {
+  URGENT
+  NORMAL
+  LOW
+}
