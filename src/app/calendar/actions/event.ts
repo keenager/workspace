@@ -18,15 +18,16 @@ export const createEvent = async (
   if (!session) return { isSuccess: false, message: "로그인이 필요합니다." };
 
   const assigneeIds = formData.getAll("assigneeIds") as string[];
-  console.log("assigneeIds from formData: ", assigneeIds);
 
   const { title, description, startDate, endDate, priority } =
     Object.fromEntries(formData.entries()) as unknown as CalendarEvent;
+  const allDay = formData.get("allDay") === "on";
 
   const event = await prisma.calendarEvent.create({
     data: {
       title,
       description,
+      allDay,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       priority,
@@ -91,12 +92,14 @@ export const updateEvent = async (
   const assigneeIds = formData.getAll("assigneeIds") as string[];
   const { title, description, startDate, endDate, priority } =
     Object.fromEntries(formData.entries()) as unknown as CalendarEvent;
+  const allDay = formData.get("allDay") === "on";
 
   await prisma.calendarEvent.update({
     where: { id: eventId },
     data: {
       title,
       description,
+      allDay,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       priority,

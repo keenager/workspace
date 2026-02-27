@@ -30,6 +30,7 @@ model CalendarEvent {
   id          String      @id @default(cuid())
   title       String
   description String?
+  allDay      Boolean
   startDate   DateTime
   endDate     DateTime
   priority    Priority    @default(NORMAL)

@@ -7,7 +7,7 @@ import { CalendarEvent } from "../../../generated/prisma/client";
 
 export default async function CalendarPage() {
   const session = await getSession();
-  if (!session) return undefined;
+  if (!session) return <UserStatus />;
   const events: CalendarEvent[] = await getMyEvents();
   const users = await getUsers();
   // console.log("events: ", events);
