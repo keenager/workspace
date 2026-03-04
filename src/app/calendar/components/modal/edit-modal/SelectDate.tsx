@@ -6,13 +6,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useEndDateState, useStartDateState } from "../../store/EventProvider";
-import { EventInModal } from "../../types";
+import {
+  useEndDateState,
+  useStartDateState,
+} from "../../../store/EventProvider";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventInModal;
+  event?: EventImpl;
   selectedDate?: Date;
   isAllDay: boolean;
 }
@@ -22,12 +25,12 @@ export default function SelectDate({ event, selectedDate, isAllDay }: Props) {
   const [endDate, setEndDate] = useEndDateState();
 
   useEffect(() => {
-    setStartDate(event?.startDate ?? selectedDate ?? new Date());
+    setStartDate(event?.start ?? selectedDate ?? new Date());
     setEndDate((_) => {
       let endDate: Date | undefined;
-      if (event) {
-        endDate = new Date(event.endDate);
-        if (event.isAllDay) {
+      if (event && event.end) {
+        endDate = new Date(event.end);
+        if (event.allDay) {
           endDate.setDate(endDate.getDate() - 1);
         }
       } else {
@@ -51,7 +54,7 @@ export default function SelectDate({ event, selectedDate, isAllDay }: Props) {
             label="시작 시각"
             id="startTimePicker"
             name="startTime"
-            time={event && !event.isAllDay ? getTimeFrom(startDate) : undefined}
+            time={event && !event.allDay ? getTimeFrom(startDate) : undefined}
           />
         )}
       </FieldGroup>
@@ -67,7 +70,7 @@ export default function SelectDate({ event, selectedDate, isAllDay }: Props) {
             label="종료 시각"
             id="endTimePicker"
             name="endTime"
-            time={event && !event.isAllDay ? getTimeFrom(endDate) : undefined}
+            time={event && !event.allDay ? getTimeFrom(endDate) : undefined}
           />
         )}
       </FieldGroup>

@@ -1,8 +1,9 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { EventInModal, MakeState } from "../types";
+import { ExtendedProps, MakeState } from "../types";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventInModal;
+  event?: EventImpl;
   selectedDate?: Date;
   children: ReactNode;
 }
@@ -16,9 +17,10 @@ export default function EventProvider({
   selectedDate,
   children,
 }: Props) {
-  const startState = useState(event?.startDate ?? selectedDate ?? new Date());
-  const endState = useState(event?.endDate ?? selectedDate ?? new Date());
-  const assigneeIdsState = useState(event?.assigneeIds ?? []);
+  const startState = useState(event?.start ?? selectedDate ?? new Date());
+  const endState = useState(event?.end ?? selectedDate ?? new Date());
+  const assignees = (event?.extendedProps as ExtendedProps)?.assignees ?? [];
+  const assigneeIdsState = useState(assignees?.map((a) => a.userId) ?? []);
 
   return (
     <StartDateContext.Provider value={startState}>

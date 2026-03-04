@@ -3,8 +3,8 @@
 import {
   useDeleteHandler,
   useSubmitHandler,
-} from "../../hooks/useEventHandler";
-import { EventInModal, User } from "../../types";
+} from "../../../hooks/useEventHandler";
+import { User } from "../../../types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,21 +18,21 @@ import { Textarea } from "@/components/ui/textarea";
 import SelectDate from "./SelectDate";
 import SelectAssignees from "./SelectAssignees";
 import SelectPriority from "./SelectPriority";
-import { deleteEvent } from "../../actions/event";
-import ConfirmDialog from "../ConfirmDialog";
+import ConfirmDialog from "../../ConfirmDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useEffect, useState } from "react";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   users: User[];
   selectedDate?: Date;
-  event?: EventInModal;
+  event?: EventImpl;
 }
 
-export default function EventModal({
+export default function EventAddEditModal({
   isOpen,
   onClose,
   users,
@@ -56,7 +56,7 @@ export default function EventModal({
   const commonProps = { event, selectedDate };
 
   useEffect(() => {
-    setIsAllDay(event?.isAllDay ?? true);
+    setIsAllDay(event?.allDay ?? true);
   }, [isOpen]);
 
   return (
@@ -95,7 +95,7 @@ export default function EventModal({
             <label className="text-sm font-medium">메모</label>
             <Textarea
               name="description"
-              defaultValue={event?.description}
+              defaultValue={event?.extendedProps.description}
               placeholder="메모 또는 설명"
               rows={3}
             />

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useAssignState } from "../../store/EventProvider";
-import { EventInModal, User } from "../../types";
+import { useAssignState } from "../../../store/EventProvider";
+import { ExtendedProps, User } from "../../../types";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventInModal;
+  event?: EventImpl;
   selectedDate?: Date;
   users: User[];
 }
@@ -12,7 +13,9 @@ export default function SelectAssignees({ event, selectedDate, users }: Props) {
   const [assigneeIds, setAssigneeIds] = useAssignState();
 
   useEffect(() => {
-    setAssigneeIds(event?.assigneeIds ?? []);
+    const assignees = (event?.extendedProps as ExtendedProps)?.assignees ?? [];
+    const newIds = assignees?.map((a) => a.userId);
+    setAssigneeIds(newIds ?? []);
   }, [event, selectedDate]);
 
   const toggleAssignee = (userId: string) => {

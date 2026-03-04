@@ -6,19 +6,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EventInModal } from "../../types";
+import { EventImpl } from "@fullcalendar/core/internal";
+import { ExtendedProps } from "@/app/calendar/types";
+import { Priority } from "../../../../../../generated/prisma/enums";
 
 interface Props {
-  event?: EventInModal;
+  event?: EventImpl;
 }
 
 export default function SelectPriority({ event }: Props) {
-  const [priority, setPriority] = useState(event?.priority ?? "NORMAL");
+  const [priority, setPriority] = useState(
+    (event?.extendedProps as ExtendedProps)?.priority ?? "NORMAL",
+  );
 
   return (
     <div>
       <label className="text-sm font-medium">우선 순위</label>
-      <Select name="priority" value={priority} onValueChange={setPriority}>
+      <Select
+        name="priority"
+        value={priority}
+        onValueChange={(value) => {
+          setPriority(value as Priority);
+        }}
+      >
         <SelectTrigger>
           <SelectValue />
         </SelectTrigger>

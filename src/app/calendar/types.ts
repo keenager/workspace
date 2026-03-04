@@ -1,9 +1,25 @@
 import { Dispatch, SetStateAction } from "react";
 import { EventStatus, Priority } from "@/../generated/prisma/enums";
+import {
+  CalendarEvent,
+  EventAssignee,
+  EventRequest,
+} from "../../../generated/prisma/client";
 
-export type Schedule = { title: string; start: string; end: string };
+type SimpleUser = { id: string; name: string };
 
-export type Event = {
+export type Assignee = EventAssignee & { user: SimpleUser };
+
+export interface EventFromDB extends CalendarEvent {
+  request:
+    | (EventRequest & {
+        requestedBy: SimpleUser;
+        assignees: Assignee[];
+      })
+    | null;
+}
+
+export type EventForFullCalendar = {
   id: string;
   title: string;
   allDay: boolean;
@@ -12,25 +28,36 @@ export type Event = {
   backgroundColor: string;
   borderColor: string;
   extendedProps: {
-    description: string;
+    description: string | null;
     priority: Priority;
-    requestedBy: string;
-    assignees: string[];
-    myAssigneeId: string;
-    myStatus: EventStatus;
+    requestedBy?: SimpleUser;
+    assignees?: (EventAssignee & { user: SimpleUser })[];
+    myAssigneeId?: string;
+    myStatus?: EventStatus;
   };
 };
 
-export type EventInModal = {
-  id: string;
-  title: string;
-  isAllDay: boolean;
-  description?: string;
-  startDate: Date;
-  endDate: Date;
+export type ExtendedProps = {
+  description: string | null;
   priority: Priority;
-  assigneeIds: string[];
+  requestedBy?: SimpleUser;
+  assignees?: (EventAssignee & { user: SimpleUser })[];
+  myAssigneeId?: string;
+  myStatus?: EventStatus;
 };
+
+// export type EventInModal = {
+//   id: string;
+//   title: string;
+//   isAllDay: boolean;
+//   description?: string | null;
+//   startDate: Date;
+//   endDate: Date;
+//   priority: Priority;
+//   requestedBy?: { id: string; name: string };
+//   assignees?: EventAssignee[];
+//   assigneeIds: string[];
+// };
 
 export type User = { id: string; name: string; email: string };
 

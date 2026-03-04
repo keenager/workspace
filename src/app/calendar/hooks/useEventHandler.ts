@@ -6,15 +6,15 @@ import {
   updateEvent,
 } from "../actions/event";
 import { toast } from "sonner";
-import { EventInModal } from "../types";
 import {
   useAssignState,
   useEndDateState,
   useStartDateState,
 } from "../store/EventProvider";
+import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventInModal;
+  event?: EventImpl;
   isAllDay?: boolean;
   closeModal: () => void;
 }
