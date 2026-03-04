@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -9,6 +9,7 @@ import EventAddEditModal from "./modal/edit-modal/EventAddEditModal";
 import { EventForFullCalendar, EventFromDB, User } from "../types";
 import EventDetailModal from "./modal/detail-modal/EventDetailModal";
 import { EventImpl } from "@fullcalendar/core/internal";
+import { useRouter } from "next/navigation";
 
 interface Props {
   session: SessionUser;
@@ -21,7 +22,20 @@ export default function CalendarClient({ session, events, users }: Props) {
   const [selectedEvent, setSelectedEvent] = useState<EventImpl>();
   const [addEditModalOpen, setAddEditModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const router = useRouter();
+
   const calendarEvents = toCalendarEvents(events, session.id);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        router.refresh();
+      }
+    }, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [router]);
+
   return (
     <>
       <FullCalendar
