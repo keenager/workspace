@@ -27,14 +27,7 @@ export type EventForFullCalendar = {
   end: Date;
   backgroundColor: string;
   borderColor: string;
-  extendedProps: {
-    description: string | null;
-    priority: Priority;
-    requestedBy?: SimpleUser;
-    assignees?: (EventAssignee & { user: SimpleUser })[];
-    myAssigneeId?: string;
-    myStatus?: EventStatus;
-  };
+  extendedProps: ExtendedProps;
 };
 
 export type ExtendedProps = {
@@ -45,19 +38,6 @@ export type ExtendedProps = {
   myAssigneeId?: string;
   myStatus?: EventStatus;
 };
-
-// export type EventInModal = {
-//   id: string;
-//   title: string;
-//   isAllDay: boolean;
-//   description?: string | null;
-//   startDate: Date;
-//   endDate: Date;
-//   priority: Priority;
-//   requestedBy?: { id: string; name: string };
-//   assignees?: EventAssignee[];
-//   assigneeIds: string[];
-// };
 
 export type User = { id: string; name: string; email: string };
 

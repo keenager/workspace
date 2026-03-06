@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { SessionUser } from "@/lib/auth";
-import EventProvider from "../store/EventProvider";
-import EventAddEditModal from "./modal/edit-modal/EventAddEditModal";
-import { EventForFullCalendar, EventFromDB, User } from "../types";
-import EventDetailModal from "./modal/detail-modal/EventDetailModal";
 import { EventImpl } from "@fullcalendar/core/internal";
-import { useRouter } from "next/navigation";
+import { SessionUser } from "@/lib/auth";
+import EventProvider from "../../store/EventProvider";
+import EventDetailModal from "../modal/detail-modal/EventDetailModal";
+import EventAddEditModal from "../modal/edit-modal/EventAddEditModal";
+import { CalendarLegend } from "./CalendarLegend";
+import { toCalendarEvents } from "./fromDBtoCalendar";
+import { EventFromDB, User } from "../../types";
 
 interface Props {
   session: SessionUser;
@@ -38,6 +40,7 @@ export default function CalendarClient({ session, events, users }: Props) {
 
   return (
     <>
+      <CalendarLegend />
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -74,40 +77,3 @@ export default function CalendarClient({ session, events, users }: Props) {
     </>
   );
 }
-
-const toCalendarEvents = (
-  events: EventFromDB[],
-  currentUserId: string,
-): EventForFullCalendar[] => {
-  return events.map((event) => {
-    const myAssignee = event.request?.assignees?.find(
-      (a) => a.userId === currentUserId,
-    );
-    const allConfirmed = event.request?.assignees?.every(
-      (a) => a.status === "CONFIRMED",
-    );
-    const color = allConfirmed
-      ? "#22c55e" // 전원 확정 → 초록
-      : myAssignee?.status === "PENDING"
-        ? "#94a3b8" // 내가 아직 미확인 → 회색
-        : "#3b82f6"; // 일부 확정 → 파랑
-
-    return {
-      id: event.id,
-      title: event.title,
-      allDay: event.allDay,
-      start: event.startDate,
-      end: event.endDate,
-      backgroundColor: color,
-      borderColor: color,
-      extendedProps: {
-        description: event.description,
-        priority: event.priority,
-        requestedBy: event.request?.requestedBy,
-        assignees: event.request?.assignees,
-        myAssigneeId: myAssignee?.id,
-        myStatus: myAssignee?.status,
-      },
-    };
-  });
-};

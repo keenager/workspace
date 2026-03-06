@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import CalendarClient from "./components/CalendarClient";
+import CalendarClient from "./components/calendar/CalendarClient";
 import UserStatus from "./components/UserStatus";
 import { getMyEvents } from "./actions/event";
 import { getUsers } from "./actions/users";
