@@ -13,9 +13,10 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { EventImpl } from "@fullcalendar/core/internal";
+import { EventForFullCalendar } from "@/app/calendar/types";
 
 interface Props {
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
   selectedDate?: Date;
   isAllDay: boolean;
 }

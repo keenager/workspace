@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { respondToEvent, deleteEvent } from "@/app/calendar/actions/event";
 import type { SessionUser } from "@/lib/auth";
-import { ExtendedProps, MakeState } from "@/app/calendar/types";
+import {
+  EventForFullCalendar,
+  ExtendedProps,
+  MakeState,
+} from "@/app/calendar/types";
 import { EventImpl } from "@fullcalendar/core/internal";
 import BasicInfo from "./BasicInfo";
 import AssigneesStatus from "./AssigneesStatus";
@@ -20,7 +24,7 @@ import AssigneesStatus from "./AssigneesStatus";
 interface Props {
   open: boolean;
   session: SessionUser;
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
   setModalOpen: MakeState<boolean>[1][];
 }
 

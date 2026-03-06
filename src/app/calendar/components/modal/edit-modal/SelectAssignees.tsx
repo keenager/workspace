@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAssignState } from "../../../store/EventProvider";
-import { ExtendedProps, User } from "../../../types";
+import { EventForFullCalendar, ExtendedProps, User } from "../../../types";
 import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
   selectedDate?: Date;
   users: User[];
 }

@@ -7,11 +7,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EventImpl } from "@fullcalendar/core/internal";
-import { ExtendedProps } from "@/app/calendar/types";
-import { Priority } from "../../../../../../generated/prisma/enums";
+import { EventForFullCalendar, ExtendedProps } from "@/app/calendar/types";
+import { Priority } from "@/../../generated/prisma/enums";
 
 interface Props {
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
 }
 
 export default function SelectPriority({ event }: Props) {

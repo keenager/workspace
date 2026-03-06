@@ -12,9 +12,10 @@ import {
   useStartDateState,
 } from "../store/EventProvider";
 import { EventImpl } from "@fullcalendar/core/internal";
+import { EventForFullCalendar } from "../types";
 
 interface Props {
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
   isAllDay?: boolean;
   closeModal: () => void;
 }

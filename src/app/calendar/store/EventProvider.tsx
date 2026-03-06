@@ -1,9 +1,9 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { ExtendedProps, MakeState } from "../types";
+import { EventForFullCalendar, ExtendedProps, MakeState } from "../types";
 import { EventImpl } from "@fullcalendar/core/internal";
 
 interface Props {
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
   selectedDate?: Date;
   children: ReactNode;
 }

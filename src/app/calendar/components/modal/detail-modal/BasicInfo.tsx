@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { EventImpl } from "@fullcalendar/core/internal";
-import { ExtendedProps } from "@/app/calendar/types";
+import { EventForFullCalendar, ExtendedProps } from "@/app/calendar/types";
 
 const priorityLabel = {
   URGENT: "긴급",
@@ -10,7 +10,7 @@ const priorityLabel = {
 };
 
 interface Props {
-  event: EventImpl; // 부모 컴포넌트에서 undefined인 경우 처리했음.
+  event: EventImpl | EventForFullCalendar; // 부모 컴포넌트에서 undefined인 경우 처리했음.
 }
 
 export default function BasicInfo({ event }: Props) {

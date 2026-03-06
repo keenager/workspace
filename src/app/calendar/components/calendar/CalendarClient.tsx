@@ -11,7 +11,8 @@ import EventDetailModal from "../modal/detail-modal/EventDetailModal";
 import EventAddEditModal from "../modal/edit-modal/EventAddEditModal";
 import { CalendarLegend } from "./CalendarLegend";
 import { toCalendarEvents } from "./fromDBtoCalendar";
-import { EventFromDB, User } from "../../types";
+import { EventForFullCalendar, EventFromDB, User } from "../../types";
+import PendingNotification from "../PendingNotification";
 
 interface Props {
   session: SessionUser;
@@ -21,7 +22,9 @@ interface Props {
 
 export default function CalendarClient({ session, events, users }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedEvent, setSelectedEvent] = useState<EventImpl>();
+  const [selectedEvent, setSelectedEvent] = useState<
+    EventImpl | EventForFullCalendar
+  >();
   const [addEditModalOpen, setAddEditModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const router = useRouter();
@@ -38,8 +41,23 @@ export default function CalendarClient({ session, events, users }: Props) {
     return () => clearInterval(interval);
   }, [router]);
 
+  const handleNotificationClick = (eventId: string) => {
+    const selectedEvent = calendarEvents.find((e) => e.id === eventId);
+    if (!selectedEvent) return;
+
+    setSelectedEvent(selectedEvent);
+    setDetailModalOpen(true);
+  };
+
   return (
     <>
+      <div className="flex items-center justify-between mb-4">
+        <PendingNotification
+          events={events}
+          currentUserId={session.id}
+          onEventClick={handleNotificationClick}
+        />
+      </div>
       <CalendarLegend />
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}

@@ -4,7 +4,7 @@ import {
   useDeleteHandler,
   useSubmitHandler,
 } from "../../../hooks/useEventHandler";
-import { User } from "../../../types";
+import { EventForFullCalendar, User } from "../../../types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,7 +29,7 @@ interface Props {
   onClose: () => void;
   users: User[];
   selectedDate?: Date;
-  event?: EventImpl;
+  event?: EventImpl | EventForFullCalendar;
 }
 
 export default function EventAddEditModal({
