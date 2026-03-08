@@ -1,9 +1,9 @@
 import { getSession } from "@/lib/session";
-import CalendarClient from "./components/calendar/CalendarClient";
-import UserStatus from "./components/UserStatus";
-import { getMyEvents } from "./actions/event";
-import { getUsers } from "./actions/users";
-import { EventFromDB } from "./types";
+import CalendarClient from "../calendar/components/calendar/CalendarClient";
+import UserStatus from "../calendar/components/UserStatus";
+import { getMyEvents } from "../calendar/actions/event";
+import { getUsers } from "../calendar/actions/users";
+import { EventFromDB } from "../calendar/types";
 
 export default async function CalendarPage() {
   const session = await getSession();

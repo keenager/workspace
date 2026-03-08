@@ -11,6 +11,9 @@ datasource db {
 }
 
 
+// =====================
+// 사용자
+// =====================
 
 model User {
   id        String   @id @default(cuid())
@@ -23,7 +26,13 @@ model User {
   requestedEvents EventRequest[] @relation("RequestedBy")
   // 나에게 할당된 일정들
   assignedEvents  EventAssignee[]
+  // 사건 메모
+  // cases  Case[]
 }
+
+// =====================
+// 일정 관리
+// =====================
 
 // 일정 본체
 model CalendarEvent {
@@ -90,4 +99,150 @@ enum Priority {
   URGENT
   NORMAL
   LOW
+}
+
+
+// =====================
+// 사건 메모
+// =====================
+
+enum CaseType {
+  CIVIL
+  CRIMINAL
+}
+
+enum MandatoryDefenseReason {
+  DETAINED  // 구속
+  MINOR     // 미성년
+  ELDERLY   // 70세 이상
+  POVERTY   // 빈곤
+  MENTAL    // 지능
+}
+
+model Case {
+  id          String    @id @default(cuid())
+  caseNumber  String
+  caseType    CaseType
+  caseName    String
+  court       String
+  filedAt     DateTime
+  crimeTitle  String?             // 죄명 (형사만 해당)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // createdById String
+  // createdBy   User      @relation(fields: [createdById], references: [id])
+
+  // 형사 당사자
+  prosecutors            Prosecutor[]
+  criminalDefendants     CriminalDefendant[]
+  compensationApplicants CompensationApplicant[]
+
+  // 형사 변호인
+  lawFirms         LawFirm[]
+  privateDefenders PrivateDefender[]
+  publicDefenders  PublicDefender[]
+
+  // 메모 섹션
+  sections CaseSection[]
+}
+
+// 검사
+model Prosecutor {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+// 피고인
+model CriminalDefendant {
+  id        String    @id @default(cuid())
+  caseId    String
+  case      Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  birthDate DateTime?
+  address   String?
+  order     Int
+
+  // 구속 관련
+  isDetained     Boolean   @default(false)
+  detentionPlace String?
+  detentionDate  DateTime?
+  arrestDate     DateTime?
+
+  // 국선변호 관련
+  isMandatoryPublicDefense Boolean                 @default(false)
+  mandatoryReason          MandatoryDefenseReason?
+
+  createdAt DateTime @default(now())
+}
+
+// 배상신청인
+model CompensationApplicant {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name        String
+  birthDate   DateTime
+  address     String
+  claimAmount Int
+  claimReason String
+  order       Int
+  createdAt   DateTime @default(now())
+}
+
+// 사선변호인 - 법무법인
+model LawFirm {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  firmName  String
+  order     Int
+  createdAt DateTime @default(now())
+
+  handlingAttorneys HandlingAttorney[]
+}
+
+// 담당변호사
+model HandlingAttorney {
+  id        String   @id @default(cuid())
+  lawFirmId String
+  lawFirm   LawFirm  @relation(fields: [lawFirmId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+// 사선변호인 - 개인변호사
+model PrivateDefender {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+// 국선변호인
+model PublicDefender {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+// 메모 섹션
+model CaseSection {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @default("")
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
