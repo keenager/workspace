@@ -19,15 +19,16 @@ type Props = {
 
 export default function CaseInfoPanel({ caseDetail }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const { criminalCase } = caseDetail;
 
-  const defendants = caseDetail.criminalDefendants ?? [];
+  const defendants = criminalCase?.criminalDefendants ?? [];
   const defendantSummary =
     defendants.length === 0
       ? "피고인 미등록"
       : defendants.length === 1
         ? defendants[0].name
         : defendants.length < 5
-          ? defendants.join(", ")
+          ? defendants.map((d) => d.name).join(", ")
           : `${defendants[0].name} 외 ${defendants.length - 1}명`;
 
   return (
@@ -93,16 +94,14 @@ export default function CaseInfoPanel({ caseDetail }: Props) {
           {caseDetail.caseType === "CRIMINAL" && (
             <div className="space-y-3">
               {/* 검사 */}
-              {caseDetail.prosecutors.length > 0 && (
+              {(criminalCase?.prosecutors.length ?? 0) > 0 && ( //TODO: 형사에 한정된 경우이므로 민사와 형사 분기를 나눈 뒤에 수정 필요
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">
-                    검사
+                    검사 {criminalCase?.prosecutors}
                   </p>
-                  {caseDetail.prosecutors.map((p: any) => (
-                    <p key={p.id}>{p.name}</p>
-                  ))}
                 </div>
               )}
+              <Separator />
 
               {/* 피고인 */}
               {defendants.length > 0 && (
@@ -110,15 +109,18 @@ export default function CaseInfoPanel({ caseDetail }: Props) {
                   <p className="text-xs font-medium text-muted-foreground">
                     피고인
                   </p>
-                  {defendants.map((d: any) => (
+                  {defendants.map((d, i) => (
                     <div key={d.id} className="space-y-0.5">
-                      <p className="font-medium">{d.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(d.birthDate), "yyyy. MM. dd.", {
-                          locale: ko,
-                        })}{" "}
-                        생
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p>{i + 1}.</p>
+                        <p className="font-medium">{d.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(d.birthDate), "yyyy. MM. dd.", {
+                            locale: ko,
+                          })}{" "}
+                          생
+                        </p>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {d.address}
                       </p>
@@ -135,60 +137,29 @@ export default function CaseInfoPanel({ caseDetail }: Props) {
                           필요적 국선
                         </Badge>
                       )}
+                      <p>
+                        {d.privateDefender} {d.publicDefender}
+                      </p>
                     </div>
                   ))}
                 </div>
               )}
-
-              {/* 국선변호인 */}
-              {caseDetail.publicDefenders.length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    국선변호인
-                  </p>
-                  {caseDetail.publicDefenders.map((d: any) => (
-                    <p key={d.id}>{d.name}</p>
-                  ))}
-                </div>
-              )}
-
-              {/* 사선변호인 */}
-              {(caseDetail.lawFirms.length > 0 ||
-                caseDetail.privateDefenders.length > 0) && (
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    사선변호인
-                  </p>
-                  {caseDetail.lawFirms.map((f: any) => (
-                    <div key={f.id}>
-                      <p className="font-medium">{f.firmName}</p>
-                      {f.handlingAttorneys.map((a: any) => (
-                        <p
-                          key={a.id}
-                          className="pl-2 text-xs text-muted-foreground"
-                        >
-                          담당 {a.name}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                  {caseDetail.privateDefenders.map((d: any) => (
-                    <p key={d.id}>{d.name}</p>
-                  ))}
-                </div>
-              )}
+              <Separator />
 
               {/* 배상신청인 */}
-              {caseDetail.compensationApplicants.length > 0 && (
+              {(criminalCase?.compensationApplicants.length ?? 0) > 0 && ( //TODO: 형사에 한정된 경우이므로 민사와 형사 분기를 나눈 뒤에 수정 필요
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground">
                     배상신청인
                   </p>
-                  {caseDetail.compensationApplicants.map((a: any) => (
+                  {criminalCase?.compensationApplicants.map((a) => (
                     <div key={a.id}>
                       <p>{a.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {a.claimAmount.toLocaleString()}원
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.claimReason}
                       </p>
                     </div>
                   ))}

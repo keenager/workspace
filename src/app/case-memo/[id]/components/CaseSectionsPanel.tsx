@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import { CaseSection } from "../../../../../generated/prisma/browser";
-import { MakeState } from "@/app/calendar/types";
+import {
+  useSectionIdStateCtx,
+  useSectionsCtx,
+} from "../../store/SectionsProvider";
 
-interface Props {
-  sections: CaseSection[];
-  idState: MakeState<string>;
-}
-
-export default function CaseSectionsPanel({ sections, idState }: Props) {
-  const [selectedSectionId, setSelectedSectionId] = idState;
+export default function CaseSectionsPanel() {
+  const sections = useSectionsCtx();
+  const [selectedSectionId, setSelectedSectionId] = useSectionIdStateCtx();
 
   return (
     <div className="flex-1 overflow-y-auto flex flex-col">

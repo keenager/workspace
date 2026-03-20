@@ -10,6 +10,5 @@ export default async function CaseMemoPage() {
       </div>
       <CaseList cases={cases} />
     </div>
-    /* <Editor sectionId="1" /> */
   );
 }

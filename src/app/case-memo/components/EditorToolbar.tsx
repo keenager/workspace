@@ -1,6 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Editor } from "@tiptap/react";
 import {
   AlignCenter,
@@ -10,6 +16,7 @@ import {
   Highlighter,
   Image,
   Italic,
+  Link,
   List,
   ListOrdered,
   Redo,
@@ -18,12 +25,64 @@ import {
   Underline,
   Undo,
 } from "lucide-react";
+import { useState } from "react";
 
 interface Props {
   editor: Editor;
 }
 
 export default function EditorToolbar({ editor }: Props) {
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const isLink = editor.isActive("link");
+  const hasSelection = !editor.state.selection.empty;
+
+  const handleLinkOpen = () => {
+    const existingUrl = editor.getAttributes("link").href;
+
+    if (editor.isActive("link")) {
+      editor.chain().extendMarkRange("link").run();
+    }
+
+    const { from, to } = editor.state.selection;
+    const existingText = editor.state.doc.textBetween(from, to);
+
+    setUrl(existingUrl ?? "");
+    setLinkText(existingText ?? "");
+    setLinkOpen(true);
+  };
+
+  const handleLinkConfirm = () => {
+    if (!url) return;
+
+    if (isLink) {
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .deleteSelection()
+        .insertContent(`<a href="${url}">${linkText || url}</a>`)
+        .run();
+    } else if (hasSelection) {
+      editor.chain().focus().setLink({ href: url }).run();
+    } else {
+      editor
+        .chain()
+        .focus()
+        .insertContent(`<a href="${url}">${linkText || url}</a>`)
+        .run();
+    }
+    setUrl("");
+    setLinkText("");
+    setLinkOpen(false);
+  };
+
+  const handleLinkRemove = () => {
+    editor.chain().focus().unsetLink().run();
+    setLinkOpen(false);
+  };
+
   const addTable = () => {
     editor
       .chain()
@@ -36,6 +95,7 @@ export default function EditorToolbar({ editor }: Props) {
     const url = window.prompt("이미지의 URL을 입력하세요.");
     if (url) editor.chain().focus().setImage({ src: url }).run();
   };
+
   return (
     <div className="flex flex-wrap gap-1 p-2">
       {/* 실행취소/다시실행 */}
@@ -169,6 +229,54 @@ export default function EditorToolbar({ editor }: Props) {
       </Button>
 
       <div className="w-px bg-border mx-1" />
+
+      {/* 링크 */}
+      <Popover open={linkOpen} onOpenChange={setLinkOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant={isLink ? "default" : "ghost"}
+            size="sm"
+            onClick={handleLinkOpen}
+          >
+            <Link className="w-4 h-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium">표시 텍스트</label>
+            <Input
+              value={linkText}
+              onChange={(e) => setLinkText(e.target.value)}
+              placeholder="링크 텍스트"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium">URL</label>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleLinkConfirm();
+                }
+              }}
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            {isLink && (
+              <Button variant="outline" size="sm" onClick={handleLinkRemove}>
+                링크 제거
+              </Button>
+            )}
+            <Button size="sm" onClick={handleLinkConfirm} disabled={!url}>
+              확인
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* 표 */}
       <Button type="button" variant="ghost" size="sm" onClick={addTable}>

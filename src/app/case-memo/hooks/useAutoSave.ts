@@ -4,7 +4,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface Props {
   content: string;
-  saveFn: (content: string) => Promise<void>;
+  saveFn?: (content: string) => Promise<void>;
   delay?: number;
 }
 
@@ -14,6 +14,9 @@ export const useAutoSave = ({ content, saveFn, delay = 3000 }: Props) => {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (!saveFn) return;
+    if (!content) return;
+
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;

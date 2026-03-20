@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { CaseType } from "@/../../generated/prisma/enums";
 import { revalidatePath } from "next/cache";
+import { CaseSectionCreateWithoutCaseInput } from "@/../../generated/prisma/models";
 import { Prisma } from "../../../../generated/prisma/client";
 
 export type CaseActionResult = {
@@ -65,10 +66,16 @@ const decorate = (
       return result;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientInitializationError) {
-        return { isSuccess: false, message: error.message };
+        return {
+          isSuccess: false,
+          message: error.message,
+        };
       }
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        return { isSuccess: false, message: error.message };
+        return {
+          isSuccess: false,
+          message: error.message,
+        };
       }
       return {
         isSuccess: false,
@@ -93,10 +100,26 @@ export const createCase = decorate(
             : (formData.get("caseName") as string),
         court: formData.get("court") as string,
         filedAt: new Date(formData.get("filedAt") as string),
-        crimeTitle:
+        criminalCase:
           caseType === "CRIMINAL"
-            ? (formData.get("crimeTitle") as string)
-            : null,
+            ? {
+                create: {
+                  prosecutors: "",
+                  criminalDefendants: {
+                    create: [
+                      {
+                        name: "",
+                        birthDate: new Date(),
+                        address: "",
+                        crimeTitle: formData.get("crimeTitle") as string,
+                        order: 1,
+                      },
+                    ],
+                  },
+                },
+              }
+            : undefined,
+
         // createdById: session.id,
         // 기본 섹션 자동 생성
         sections: {
@@ -117,15 +140,21 @@ export const getCaseDetail = decorate(async (caseId: string) => {
     where: { id: caseId },
     include: {
       sections: { orderBy: { order: "asc" } },
-      prosecutors: { orderBy: { order: "asc" } },
-      criminalDefendants: { orderBy: { order: "asc" } },
-      compensationApplicants: { orderBy: { order: "asc" } },
-      lawFirms: {
-        orderBy: { order: "asc" },
-        include: { handlingAttorneys: { orderBy: { order: "asc" } } },
+      criminalCase: {
+        include: {
+          criminalDefendants: { orderBy: { order: "asc" } },
+          compensationApplicants: { orderBy: { order: "asc" } },
+          trials: {
+            orderBy: { order: "asc" },
+            include: {
+              attendances: {
+                orderBy: { defendant: { order: "asc" } },
+                include: { defendant: true },
+              },
+            },
+          },
+        },
       },
-      privateDefenders: { orderBy: { order: "asc" } },
-      publicDefenders: { orderBy: { order: "asc" } },
     },
   });
   return { isSuccess: true, data };
@@ -145,15 +174,115 @@ export const deleteCase = decorate(
   },
 );
 
+// 기일 진행상황 조회
+export const getTrials = decorate(async (criminalCaseId: string) => {
+  const trials = await prisma.trial.findMany({
+    where: { criminalCaseId },
+    orderBy: { order: "asc" },
+    include: {
+      attendances: {
+        include: { defendant: true },
+        orderBy: { defendant: { order: "asc" } },
+      },
+    },
+  });
+  return { isSuccess: true, data: trials };
+});
+
+// 기일 진행상황 생성
+export const createTrial = decorate(
+  async (criminalCaseId: string, date: Date, defendantIds: string[]) => {
+    //현재 마지막 order 조회
+    const lastTrial = await prisma.trial.findFirst({
+      where: { criminalCaseId },
+      orderBy: { order: "desc" },
+    });
+    const nextOrder = (lastTrial?.order ?? 0) + 1;
+
+    const trial = await prisma.trial.create({
+      data: {
+        criminalCaseId,
+        date,
+        order: nextOrder,
+        attendances: {
+          create: defendantIds.map((id) => ({
+            defendantId: id,
+            isSummonsServed: null,
+            isPresent: true,
+          })),
+        },
+        checkItems: "",
+        proceedings: "",
+        submissions: "",
+      },
+      include: {
+        attendances: {
+          include: { defendant: true },
+          orderBy: { defendant: { order: "asc" } },
+        },
+      },
+    });
+
+    return { isSuccess: true, data: trial };
+  },
+);
+
+//기일 진행상황 삭제
+export const deleteTrial = decorate(async (trialId: string) => {
+  await prisma.trial.delete({ where: { id: trialId } });
+  return { isSuccess: true };
+});
+
+// 기일 진행상황 업데이트
+export const updateTrial = decorate(
+  async (
+    trialId: string,
+    data: {
+      date?: Date;
+      checkItems?: string;
+      proceedings?: string;
+      submissions?: string;
+    },
+  ) => {
+    const updated = await prisma.trial.update({
+      where: { id: trialId },
+      data,
+      include: {
+        attendances: {
+          include: { defendant: true },
+          orderBy: { defendant: { order: "asc" } },
+        },
+      },
+    });
+    return { isSuccess: true, data: updated };
+  },
+);
+
+// 출석 여부 업데이트
+export const updateAttendance = decorate(
+  async (
+    attendanceId: string,
+    trialId: string,
+    data: { isPresent: boolean; isSummonsServed: boolean | null },
+  ) => {
+    const updated = await prisma.trialAttendance.update({
+      where: { id: attendanceId },
+      data,
+      include: { defendant: true },
+    });
+    return { isSuccess: true, data: updated };
+  },
+);
+
 // 기본 섹션 템플릿
-const CRIMINAL_DEFAULT_SECTIONS = [
-  { title: "공소사실", content: "", order: 0 },
-  { title: "쟁점 정리", content: "", order: 1 },
-  { title: "기일 진행", content: "", order: 2 },
-  { title: "피고인 주장", content: "", order: 3 },
-  { title: "관련 법리 및 판례", content: "", order: 4 },
-  { title: "증거 및 제출서류", content: "", order: 5 },
-  { title: "기타 메모", content: "", order: 6 },
+const CRIMINAL_DEFAULT_SECTIONS: CaseSectionCreateWithoutCaseInput[] = [
+  { title: "공소사실", content: "", order: 0, sectionType: "EDITOR" },
+  { title: "쟁점 정리", content: "", order: 1, sectionType: "EDITOR" },
+  { title: "기일 진행", content: "", order: 2, sectionType: "TRIAL" },
+  { title: "피고인 주장", content: "", order: 3, sectionType: "EDITOR" },
+  { title: "관련 법리 및 판례", content: "", order: 4, sectionType: "EDITOR" },
+  { title: "증거 및 제출서류", content: "", order: 5, sectionType: "EDITOR" },
+  { title: "기타 메모", content: "", order: 6, sectionType: "EDITOR" },
 ];
 
 const CIVIL_DEFAULT_SECTIONS = [

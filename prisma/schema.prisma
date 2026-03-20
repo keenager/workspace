@@ -119,6 +119,7 @@ enum MandatoryDefenseReason {
   MENTAL    // 지능
 }
 
+// 공통 사건 정보
 model Case {
   id          String    @id @default(cuid())
   caseNumber  String
@@ -126,45 +127,42 @@ model Case {
   caseName    String
   court       String
   filedAt     DateTime
-  crimeTitle  String?             // 죄명 (형사만 해당)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   // createdById String
   // createdBy   User      @relation(fields: [createdById], references: [id])
 
-  // 형사 당사자
-  prosecutors            Prosecutor[]
-  criminalDefendants     CriminalDefendant[]
-  compensationApplicants CompensationApplicant[]
-
-  // 형사 변호인
-  lawFirms         LawFirm[]
-  privateDefenders PrivateDefender[]
-  publicDefenders  PublicDefender[]
+  criminalCase  CriminalCase?
 
   // 메모 섹션
   sections CaseSection[]
 }
 
-// 검사
-model Prosecutor {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name      String
-  order     Int
-  createdAt DateTime @default(now())
+// 형사 전용
+model CriminalCase {
+  id                     String  @id @default(cuid())
+  caseId                 String  @unique
+  case                   Case    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  // 형사 당사자
+  prosecutors            String
+
+  criminalDefendants     CriminalDefendant[]
+  compensationApplicants CompensationApplicant[]
+  trials                 Trial[]
 }
+
 
 // 피고인
 model CriminalDefendant {
-  id        String    @id @default(cuid())
-  caseId    String
-  case      Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name      String
-  birthDate DateTime?
-  address   String?
-  order     Int
+  id                String        @id @default(cuid())
+  criminalCaseId    String
+  criminalCase      CriminalCase  @relation(fields: [criminalCaseId], references: [id], onDelete: Cascade)
+  name              String
+  birthDate         DateTime
+  address           String
+  order             Int
+  crimeTitle        String
 
   // 구속 관련
   isDetained     Boolean   @default(false)
@@ -172,77 +170,78 @@ model CriminalDefendant {
   detentionDate  DateTime?
   arrestDate     DateTime?
 
-  // 국선변호 관련
+  // 변호인 관련
   isMandatoryPublicDefense Boolean                 @default(false)
   mandatoryReason          MandatoryDefenseReason?
+  publicDefender  String?
+  privateDefender String?
+
+  // 공판기일 출석 관련
+  trialAttendances     TrialAttendance[]
 
   createdAt DateTime @default(now())
 }
 
 // 배상신청인
 model CompensationApplicant {
-  id          String   @id @default(cuid())
-  caseId      String
-  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name        String
-  birthDate   DateTime
-  address     String
-  claimAmount Int
-  claimReason String
-  order       Int
-  createdAt   DateTime @default(now())
+  id              String        @id @default(cuid())
+  criminalCaseId  String
+  criminalCase    CriminalCase  @relation(fields: [criminalCaseId], references: [id], onDelete: Cascade)
+  name            String
+  birthDate       DateTime
+  address         String
+  claimAmount     Int
+  claimReason     String
+  order           Int
+  createdAt       DateTime      @default(now())
 }
 
-// 사선변호인 - 법무법인
-model LawFirm {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  firmName  String
-  order     Int
-  createdAt DateTime @default(now())
 
-  handlingAttorneys HandlingAttorney[]
-}
-
-// 담당변호사
-model HandlingAttorney {
-  id        String   @id @default(cuid())
-  lawFirmId String
-  lawFirm   LawFirm  @relation(fields: [lawFirmId], references: [id], onDelete: Cascade)
-  name      String
-  order     Int
-  createdAt DateTime @default(now())
-}
-
-// 사선변호인 - 개인변호사
-model PrivateDefender {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name      String
-  order     Int
-  createdAt DateTime @default(now())
-}
-
-// 국선변호인
-model PublicDefender {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name      String
-  order     Int
-  createdAt DateTime @default(now())
+enum SectionType {
+  EDITOR
+  TRIAL
 }
 
 // 메모 섹션
 model CaseSection {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  title     String
-  content   String   @default("")
-  order     Int
+  id          String      @id @default(cuid())
+  caseId      String
+  case        Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title       String
+  content     String      @default("")
+  order       Int
+  sectionType SectionType @default(EDITOR)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// 공판기일
+model Trial {
+  id             String       @id @default(cuid())
+  criminalCaseId String
+  criminalCase   CriminalCase @relation(fields: [criminalCaseId], references: [id], onDelete: Cascade)
+  date           DateTime
+  order          Int          // 1기일, 2기일...
+
+  checkItems   String?  // 체크사항 (지난 기일 예정사항)
+  proceedings  String?  // 진행사항
+  submissions  String?  // 제출자료 및 신청사항
+
+  attendances TrialAttendance[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TrialAttendance {
+  id              String   @id @default(cuid())
+  trialId         String
+  trial           Trial    @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  defendantId     String
+  defendant       CriminalDefendant @relation(fields: [defendantId], references: [id], onDelete: Cascade)
+  isPresent       Boolean  @default(true)
+  isSummonsServed Boolean? // 불출석 시에만 의미 있음
+
+  @@unique([trialId, defendantId])
 }

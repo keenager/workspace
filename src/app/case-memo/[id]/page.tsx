@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getCaseDetail } from "../actions/case";
-import CaseDetailClient from "./components/CaseDetailClient";
+import CaseMemoClient from "./components/CaseMemoClient";
 
 interface Props {
   params: { id: string };
@@ -11,5 +11,5 @@ export default async function CaseDetailPage({ params }: Props) {
   const result = await getCaseDetail(id);
   if (!result.isSuccess) notFound();
 
-  return <CaseDetailClient caseDetail={result.data} />;
+  return <CaseMemoClient caseDetail={result.data} />;
 }

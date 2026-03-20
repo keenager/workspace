@@ -3,13 +3,24 @@ import { Prisma } from "../../../generated/prisma/client";
 export type CaseDetail = Prisma.CaseGetPayload<{
   include: {
     sections: true;
-    prosecutors: true;
-    criminalDefendants: true;
-    compensationApplicants: true;
-    lawFirms: {
-      include: { handlingAttorneys: true };
+    criminalCase: {
+      include: {
+        criminalDefendants: true;
+        compensationApplicants: true;
+        trials: {
+          include: {
+            attendances: {
+              include: { defendant: true };
+            };
+          };
+        };
+      };
     };
-    privateDefenders: true;
-    publicDefenders: true;
   };
 }>;
+
+export type Sections = CaseDetail["sections"];
+
+export type Trial = NonNullable<CaseDetail["criminalCase"]>["trials"][number];
+
+export type TrialAttendance = Trial["attendances"][number];
