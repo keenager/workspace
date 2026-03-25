@@ -84,6 +84,23 @@ export default function Editor({
       <EditorContent
         editor={editor}
         className={`prose max-w-none p-4 focus:outline-none ${editable ? "min-h-64" : "min-h-0"}`}
+        onMouseDownCapture={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains("footnote-backref")) {
+            e.preventDefault(); // 새탭 열림 방지
+          }
+        }}
+        onClickCapture={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains("footnote-backref")) {
+            e.preventDefault();
+            const href = target.getAttribute("href");
+            if (!href) return;
+            const id = href.replace("#", "");
+            const el = document.getElementById(id);
+            el?.scrollIntoView({ behavior: "smooth" });
+          }
+        }}
       />
     </div>
   );

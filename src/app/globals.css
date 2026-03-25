@@ -147,3 +147,56 @@
   background-color: #f8fafc;
   font-weight: 600;
 }
+
+/* Tiptap 에디터 각주 */
+ol.footnotes {
+  margin-top: 20px;
+  padding: 20px 0;
+  list-style-type: decimal;
+  padding-left: 20px;
+}
+
+ol.footnotes:has(li) {
+  border-top: 1px solid black;
+}
+
+ol.footnotes li {
+  display: list-item;
+  align-items: baseline;
+  gap: 4px;
+}
+
+ol.footnotes li span {
+  display: inline;
+}
+
+ol.footnotes li span p {
+  display: inline;
+  margin: 0;
+}
+
+a.footnote-ref {
+  color: rgb(72, 72, 235);
+  text-decoration: none;
+}
+
+a.footnote-ref::before {
+  content: "[";
+}
+a.footnote-ref::after {
+  content: "]";
+}
+a.footnote-ref:hover {
+  text-decoration: underline;
+}
+
+a.footnote-backref {
+  text-decoration: none;
+  color: var(--muted-foreground);
+  margin-left: 4px;
+}
+
+a.footnote-backref:hover {
+  text-decoration: underline;
+  cursor: pointer !important;
+}

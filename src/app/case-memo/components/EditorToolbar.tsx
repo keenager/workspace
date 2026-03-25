@@ -21,6 +21,7 @@ import {
   ListOrdered,
   Redo,
   Strikethrough,
+  Superscript,
   Table,
   Underline,
   Undo,
@@ -229,6 +230,16 @@ export default function EditorToolbar({ editor }: Props) {
       </Button>
 
       <div className="w-px bg-border mx-1" />
+
+      {/* 각주 */}
+      <Button
+        type="button"
+        variant={editor.isActive("footnoteReference") ? "default" : "ghost"}
+        size="sm"
+        onClick={() => editor.chain().focus().addFootnote().run()}
+      >
+        <Superscript className="w-4 h-4" />
+      </Button>
 
       {/* 링크 */}
       <Popover open={linkOpen} onOpenChange={setLinkOpen}>
